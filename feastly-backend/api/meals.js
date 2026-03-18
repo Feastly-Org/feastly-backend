@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getAllMeals,
+  getMealWithIngredients,
   getMealById,
   createMeal,
   updateMeal,
@@ -21,6 +22,28 @@ router.get("/", async (req, res, next) => {
   try {
     const meals = await getAllMeals();
     res.send(meals);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/meals/:id/full
+ * Get a meal with all its ingredients.
+ *
+ * @param {number} id - Meal ID
+ * @returns {Object} Meal with ingredients array
+ */
+router.get("/:id/full", async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const meal = await getMealWithIngredients(id);
+
+    if (!meal) {
+      return res.status(404).send("Meal not found.");
+    }
+
+    res.send(meal);
   } catch (error) {
     next(error);
   }

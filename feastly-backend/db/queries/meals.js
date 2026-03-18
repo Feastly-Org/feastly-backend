@@ -35,6 +35,65 @@ export const getMealById = async (id) => {
 };
 
 /**
+ * Get one full meal with all ingredient details.
+ * @param {number} id - Meal ID
+ * @returns {Promise<Object|null>} Meal with ingredients or null if not found
+ */
+export const getMealWithIngredients = async (id) => {
+  const { rows } = await db.query(
+    `
+    SELECT
+      meals.id,
+      meals.user_id,
+      meals.meal_date,
+      meals.meal_type,
+      ingredients.id AS ingredient_id,
+      ingredients.name,
+      ingredients.calories,
+      ingredients.protein,
+      ingredients.carbs,
+      ingredients.fat,
+      meal_ingredients.quantity
+    FROM meals
+    LEFT JOIN meal_ingredients
+      ON meals.id = meal_ingredients.meal_id
+    LEFT JOIN ingredients
+      ON meal_ingredients.ingredient_id = ingredients.id
+    WHERE meals.id = $1;
+    `,
+    [id],
+  );
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const meal = {
+    id: rows[0].id,
+    user_id: rows[0].user_id,
+    meal_date: rows[0].meal_date,
+    meal_type: rows[0].meal_type,
+    ingredients: [],
+  };
+
+  for (const row of rows) {
+    if (row.ingredient_id) {
+      meal.ingredients.push({
+        id: row.ingredient_id,
+        name: row.name,
+        calories: row.calories,
+        protein: row.protein,
+        carbs: row.carbs,
+        fat: row.fat,
+        quantity: row.quantity,
+      });
+    }
+  }
+
+  return meal;
+};
+
+/**
  * Create a new meal.
  * @param {number} userId - The ID of the user creating the meal
  * @param {string} mealDate - The date of the meal (YYYY-MM-DD)
