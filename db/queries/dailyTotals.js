@@ -1,7 +1,5 @@
 import db from "#db/client";
 
-// Creates a daily total for a user
-export async function createDailyTotal(
 /**
  * Get all daily totals from the database.
  * @returns {Promise<Array>} Array of daily total objects
@@ -74,9 +72,6 @@ export const createDailyTotal = async (
   totalProtein,
   totalCarbs,
   totalFat,
-) {
-  // Iinserting a new row into the "daily_totals" table
-  const sql = `
 ) => {
   const {
     rows: [dailyTotal],
@@ -87,24 +82,6 @@ export const createDailyTotal = async (
     VALUES
       ($1, $2, $3, $4, $5, $6)
     RETURNING *;
-  `;
-
-  // Send the query to the database
-  const result = await db.query(sql, [
-    userId,
-    date,
-    totalCalories,
-    totalProtein,
-    totalCarbs,
-    totalFat,
-  ]);
-
-  // Get the newly created row from the result
-  const dailyTotal = result.rows[0];
-
-  // Return the created daily total
-  return dailyTotal;
-}
     `,
     [userId, date, totalCalories, totalProtein, totalCarbs, totalFat],
   );
