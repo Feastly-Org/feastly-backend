@@ -68,3 +68,11 @@ export async function getUserById(id) {
   } = await db.query(sql, [id]);
   return user;
 }
+
+export async function getAllUsers() {
+  const sql = `
+  SELECT * FROM users
+  `;
+  const { rows: users } = await db.query(sql);
+  return users;
+}
