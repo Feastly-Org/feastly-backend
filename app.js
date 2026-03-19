@@ -16,11 +16,11 @@ app.use(express.json());
 
 app.use(getUserFromToken);
 
-app.use(usersRouter);
-app.use(dailyTotalsRouter);
-app.use(ingredientsRouter);
-app.use(mealIngredientsRouter);
-app.use(mealsRouter);
+app.use("/users", usersRouter);
+app.use("/dailyTotals", dailyTotalsRouter);
+app.use("/ingredients", ingredientsRouter);
+app.use("/mealIngredients", mealIngredientsRouter);
+app.use("/meals", mealsRouter);
 
 app.use((err, req, res, next) => {
   switch (err.code) {
