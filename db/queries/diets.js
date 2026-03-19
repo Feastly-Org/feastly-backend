@@ -46,6 +46,7 @@ export const createDiet = async (name) => {
     `
     INSERT INTO diets (name)
     VALUES ($1)
+    ON CONFLICT (name) DO NOTHING
     RETURNING *;
     `,
     [name],

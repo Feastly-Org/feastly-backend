@@ -5,6 +5,7 @@ import { createUser } from "#db/queries/users";
 import { createIngredient } from "#db/queries/ingredients";
 import { INGREDIENT_LIST, DIETS, ALLERGIES } from "#db/data";
 import { createDiet } from "#db/queries/diets";
+import { createAllergy, getAllAllergies } from "#db/queries/allergies";
 import { createAllergy } from "#db/queries/allergies";
 
 await db.connect();
@@ -36,4 +37,8 @@ async function seed() {
   for (const allergy of ALLERGIES) {
     await createAllergy(allergy.name);
   }
+
+  const allergies = await getAllAllergies();
+  console.log("Allergies in database:");
+  console.table(allergies);
 }

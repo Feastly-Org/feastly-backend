@@ -46,6 +46,7 @@ export const createAllergy = async (name) => {
     `
     INSERT INTO allergies (name)
     VALUES ($1)
+    ON CONFLICT (name) DO NOTHING
     RETURNING *;
     `,
     [name],
