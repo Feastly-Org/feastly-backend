@@ -14,7 +14,7 @@ router.post(
     const user = await createUser(email, password);
 
     const token = createToken({ id: user.id });
-    res.status(201).send(token);
+    res.status(200).json({ token });
   },
 );
 
@@ -24,5 +24,5 @@ router.post("/login", requireBody(["email", "password"]), async (req, res) => {
   if (!user) return res.status(401).send("Invalid email or password.");
 
   const token = createToken({ id: user.id });
-  res.send(token);
+  res.status(200).json({ token });
 });

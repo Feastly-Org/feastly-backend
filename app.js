@@ -29,7 +29,11 @@ app.use((err, req, res, next) => {
       return res.status(400).send(err.message);
     // Unique constraint violation
     case "23505":
-    // Foreign key violation
+      // Foreign key violation
+      const match = err.detail.match(/Key \((\w+)\)/);
+      let field = match ? match[1] : "field"; // extracts "email"
+      field = field.charAt(0).toUpperCase() + field.slice(1);
+      return res.status(409).json({ message: `${field} already exists.` });
     case "23503":
       return res.status(400).send(err.detail);
     default:
