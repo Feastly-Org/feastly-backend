@@ -16,6 +16,8 @@ DROP TABLE IF EXISTS diets CASCADE;
 DROP TABLE IF EXISTS user_allergies CASCADE;
 DROP TABLE IF EXISTS allergies CASCADE;
 DROP TABLE IF EXISTS daily_totals CASCADE;
+DROP TABLE IF EXISTS saved_meal_ingredients CASCADE;
+DROP TABLE IF EXISTS saved_meals CASCADE;
 DROP TABLE IF EXISTS meal_ingredients CASCADE;
 DROP TABLE IF EXISTS meals CASCADE;
 DROP TABLE IF EXISTS ingredients CASCADE;
@@ -77,6 +79,34 @@ CREATE TABLE meal_ingredients (
     FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE CASCADE,
     FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE,
     UNIQUE (meal_id, ingredient_id)
+);
+
+/* =========================================================
+   SAVED_MEALS
+   Stores reusable user-defined meal templates.
+   Unlike meals, these are not tied to a specific date.
+   ========================================================= */
+CREATE TABLE saved_meals (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+/* =========================================================
+   SAVED_MEAL_INGREDIENTS
+   Join table linking reusable saved meals to ingredients.
+   Stores quantity of each ingredient in the saved meal.
+   ========================================================= */
+CREATE TABLE saved_meal_ingredients (
+    id SERIAL PRIMARY KEY,
+    saved_meal_id INT NOT NULL,
+    ingredient_id INT NOT NULL,
+    quantity INT NOT NULL CHECK (quantity > 0),
+    FOREIGN KEY (saved_meal_id) REFERENCES saved_meals(id) ON DELETE CASCADE,
+    FOREIGN KEY (ingredient_id) REFERENCES ingredients(id) ON DELETE CASCADE,
+    UNIQUE (saved_meal_id, ingredient_id)
 );
 
 /* =========================================================

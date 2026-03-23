@@ -12,6 +12,15 @@ import requireBody from "#middleware/requireBody";
 const router = express.Router();
 export default router;
 
+function requireUser(req, res) {
+  if (!req.user) {
+    res.status(401).send("You must be logged in.");
+    return null;
+  }
+
+  return req.user;
+}
+
 /**
  * GET /api/meals
  * Get all meals.
@@ -20,7 +29,10 @@ export default router;
  */
 router.get("/", async (req, res, next) => {
   try {
-    const meals = await getAllMeals();
+    const user = requireUser(req, res);
+    if (!user) return;
+
+    const meals = await getAllMeals(user.id);
     res.send(meals);
   } catch (error) {
     next(error);
@@ -36,8 +48,11 @@ router.get("/", async (req, res, next) => {
  */
 router.get("/:id/full", async (req, res, next) => {
   try {
+    const user = requireUser(req, res);
+    if (!user) return;
+
     const id = Number(req.params.id);
-    const meal = await getMealWithIngredients(id);
+    const meal = await getMealWithIngredients(id, user.id);
 
     if (!meal) {
       return res.status(404).send("Meal not found.");
@@ -58,8 +73,11 @@ router.get("/:id/full", async (req, res, next) => {
  */
 router.get("/:id", async (req, res, next) => {
   try {
+    const user = requireUser(req, res);
+    if (!user) return;
+
     const id = Number(req.params.id);
-    const meal = await getMealById(id);
+    const meal = await getMealById(id, user.id);
 
     if (!meal) {
       return res.status(404).send("Meal not found.");
@@ -75,20 +93,22 @@ router.get("/:id", async (req, res, next) => {
  * POST /api/meals
  * Create a new meal.
  *
- * @param {number} userId - ID of the user creating the meal
- * @param {string} mealDate - Date of the meal (YYYY-MM-DD)
- * @param {string} mealType - Type of meal (breakfast, lunch, dinner, snack)
+   * @param {string} mealDate - Date of the meal (YYYY-MM-DD)
+   * @param {string} mealType - Type of meal (breakfast, lunch, dinner, snack)
  *
  * @returns {Object} Created meal
  */
 router.post(
   "/",
-  requireBody(["userId", "mealDate", "mealType"]),
+  requireBody(["mealDate", "mealType"]),
   async (req, res, next) => {
     try {
-      const { userId, mealDate, mealType } = req.body;
+      const user = requireUser(req, res);
+      if (!user) return;
 
-      const meal = await createMeal(userId, mealDate, mealType);
+      const { mealDate, mealType } = req.body;
+
+      const meal = await createMeal(user.id, mealDate, mealType);
 
       res.status(201).send(meal);
     } catch (error) {
@@ -112,10 +132,13 @@ router.put(
   requireBody(["mealDate", "mealType"]),
   async (req, res, next) => {
     try {
+      const user = requireUser(req, res);
+      if (!user) return;
+
       const id = Number(req.params.id);
       const { mealDate, mealType } = req.body;
 
-      const meal = await updateMeal(id, mealDate, mealType);
+      const meal = await updateMeal(id, user.id, mealDate, mealType);
 
       if (!meal) {
         return res.status(404).send("Meal not found.");
@@ -138,9 +161,12 @@ router.put(
  */
 router.delete("/:id", async (req, res, next) => {
   try {
+    const user = requireUser(req, res);
+    if (!user) return;
+
     const id = Number(req.params.id);
 
-    const meal = await deleteMeal(id);
+    const meal = await deleteMeal(id, user.id);
 
     if (!meal) {
       return res.status(404).send("Meal not found.");

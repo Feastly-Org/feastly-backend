@@ -4,12 +4,16 @@ import db from "#db/client";
  * Get all meals from the database.
  * @returns {Promise<Array>} Array of meal objects
  */
-export const getAllMeals = async () => {
-  const { rows } = await db.query(`
+export const getAllMeals = async (userId) => {
+  const { rows } = await db.query(
+    `
     SELECT *
     FROM meals
+    WHERE user_id = $1
     ORDER BY meal_date DESC;
-  `);
+  `,
+    [userId],
+  );
 
   return rows;
 };
@@ -19,16 +23,16 @@ export const getAllMeals = async () => {
  * @param {number} id - Meal ID
  * @returns {Promise<Object|null>} Meal object or null if not found
  */
-export const getMealById = async (id) => {
+export const getMealById = async (id, userId) => {
   const {
     rows: [meal],
   } = await db.query(
     `
     SELECT *
     FROM meals
-    WHERE id = $1;
+    WHERE id = $1 AND user_id = $2;
     `,
-    [id],
+    [id, userId],
   );
 
   return meal;
@@ -39,7 +43,7 @@ export const getMealById = async (id) => {
  * @param {number} id - Meal ID
  * @returns {Promise<Object|null>} Meal with ingredients or null if not found
  */
-export const getMealWithIngredients = async (id) => {
+export const getMealWithIngredients = async (id, userId) => {
   const { rows } = await db.query(
     `
     SELECT
@@ -59,9 +63,9 @@ export const getMealWithIngredients = async (id) => {
       ON meals.id = meal_ingredients.meal_id
     LEFT JOIN ingredients
       ON meal_ingredients.ingredient_id = ingredients.id
-    WHERE meals.id = $1;
+    WHERE meals.id = $1 AND meals.user_id = $2;
     `,
-    [id],
+    [id, userId],
   );
 
   if (rows.length === 0) {
@@ -122,7 +126,7 @@ export const createMeal = async (userId, mealDate, mealType) => {
  * @param {string} mealType - Updated meal type
  * @returns {Promise<Object|null>} Updated meal or null if not found
  */
-export const updateMeal = async (id, mealDate, mealType) => {
+export const updateMeal = async (id, userId, mealDate, mealType) => {
   const {
     rows: [meal],
   } = await db.query(
@@ -130,10 +134,10 @@ export const updateMeal = async (id, mealDate, mealType) => {
     UPDATE meals
     SET meal_date = $2,
         meal_type = $3
-    WHERE id = $1
+    WHERE id = $1 AND user_id = $4
     RETURNING *;
     `,
-    [id, mealDate, mealType],
+    [id, mealDate, mealType, userId],
   );
 
   return meal;
@@ -144,16 +148,16 @@ export const updateMeal = async (id, mealDate, mealType) => {
  * @param {number} id - Meal ID
  * @returns {Promise<Object|null>} Deleted meal or null if not found
  */
-export const deleteMeal = async (id) => {
+export const deleteMeal = async (id, userId) => {
   const {
     rows: [meal],
   } = await db.query(
     `
     DELETE FROM meals
-    WHERE id = $1
+    WHERE id = $1 AND user_id = $2
     RETURNING *;
     `,
-    [id],
+    [id, userId],
   );
 
   return meal;

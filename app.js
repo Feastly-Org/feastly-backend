@@ -9,6 +9,7 @@ import dailyTotalsRouter from "#api/dailyTotals";
 import ingredientsRouter from "#api/ingredients";
 import mealIngredientsRouter from "#api/mealIngredients";
 import mealsRouter from "#api/meals";
+import savedMealsRouter from "#api/savedMeals";
 import getUserFromToken from "#middleware/getUserFromToken";
 
 app.use(
@@ -39,6 +40,8 @@ app.use("/mealIngredients", mealIngredientsRouter);
 app.use("/api/mealIngredients", mealIngredientsRouter);
 app.use("/meals", mealsRouter);
 app.use("/api/meals", mealsRouter);
+app.use("/savedMeals", savedMealsRouter);
+app.use("/api/savedMeals", savedMealsRouter);
 
 app.use((err, req, res, next) => {
   switch (err.code) {
