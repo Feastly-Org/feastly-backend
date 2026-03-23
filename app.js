@@ -11,16 +11,34 @@ import mealIngredientsRouter from "#api/mealIngredients";
 import mealsRouter from "#api/meals";
 import getUserFromToken from "#middleware/getUserFromToken";
 
-app.use(cors({ origin: /localhost/ }));
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true);
+
+      const allowedOrigin =
+        /^https?:\/\/localhost(?::\d+)?$/.test(origin) ||
+        /^https?:\/\/127\.0\.0\.1(?::\d+)?$/.test(origin);
+
+      if (allowedOrigin) return callback(null, true);
+      callback(new Error("Not allowed by CORS"));
+    },
+  }),
+);
 app.use(express.json());
 
 app.use(getUserFromToken);
 
 app.use("/users", usersRouter);
+app.use("/api/users", usersRouter);
 app.use("/dailyTotals", dailyTotalsRouter);
+app.use("/api/dailyTotals", dailyTotalsRouter);
 app.use("/ingredients", ingredientsRouter);
+app.use("/api/ingredients", ingredientsRouter);
 app.use("/mealIngredients", mealIngredientsRouter);
+app.use("/api/mealIngredients", mealIngredientsRouter);
 app.use("/meals", mealsRouter);
+app.use("/api/meals", mealsRouter);
 
 app.use((err, req, res, next) => {
   switch (err.code) {
