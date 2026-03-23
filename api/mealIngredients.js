@@ -1,8 +1,8 @@
 import express from "express";
 import {
+  addMealIngredient,
   getAllMealIngredients,
   getMealIngredientById,
-  createMealIngredient,
   updateMealIngredient,
   deleteMealIngredient,
 } from "#db/queries/mealIngredients";
@@ -65,7 +65,7 @@ router.post(
     try {
       const { mealId, ingredientId, quantity } = req.body;
 
-      const mealIngredient = await createMealIngredient(
+      const mealIngredient = await addMealIngredient(
         mealId,
         ingredientId,
         quantity,
