@@ -96,3 +96,18 @@ export const deleteDiet = async (id) => {
 
   return diet;
 };
+/**
+ * @param {number} id - userID
+ * @returns {string} - diet type
+ */
+export async function getDietByUserId(id) {
+  const sql = `
+  SELECT *
+  FROM user_diets 
+  WHERE user_id = $1;
+  `;
+  const {
+    rows: [diet],
+  } = await db.query(sql, [id]);
+  return diet;
+}

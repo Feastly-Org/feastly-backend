@@ -96,3 +96,17 @@ export const deleteAllergy = async (id) => {
 
   return allergy;
 };
+
+/**
+ * @param {number} id - User ID
+ * @returns {Object} - object of id, user_id, allergy_id
+ */
+export async function getAllergiesByUserId(id) {
+  const sql = `
+  SELECT *
+  FROM user_allergies
+  WHERE user_id = $1
+  `;
+  const { rows } = await db.query(sql, [id]);
+  return rows;
+}
