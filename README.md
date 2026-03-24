@@ -111,7 +111,7 @@ Existing apps are often:
 Below is the initial UI wireframe showing the layout of the application:
 
 <p align="center">
-  <img src="./assets/wireframe.png" width="800"/>
+  <img src="./assets/Wireframe.png" width="800"/>
 </p>
 
 - Dashboard with daily meals _(breakfast/lunch/dinner/snacks)_
