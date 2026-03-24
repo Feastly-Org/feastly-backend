@@ -14,8 +14,11 @@ router.post(
       const { email, password } = req.body;
       const user = await createUser(email, password);
 
-    const token = createToken({ id: user.id });
-    res.status(200).json({ token });
+      const token = createToken({ id: user.id });
+      res.status(200).json({ token });
+    } catch (err) {
+      next(err);
+    }
   },
 );
 
