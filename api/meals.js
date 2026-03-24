@@ -20,7 +20,11 @@ export default router;
  */
 router.get("/", async (req, res, next) => {
   try {
-    const meals = await getAllMeals();
+    if (!req.user) {
+      return res.status(401).send("You must be logged in.");
+    }
+
+    const meals = await getAllMeals(req.user.id);
     res.send(meals);
   } catch (error) {
     next(error);
@@ -36,11 +40,19 @@ router.get("/", async (req, res, next) => {
  */
 router.get("/:id/full", async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).send("You must be logged in.");
+    }
+
     const id = Number(req.params.id);
     const meal = await getMealWithIngredients(id);
 
     if (!meal) {
       return res.status(404).send("Meal not found.");
+    }
+
+    if (meal.user_id !== req.user.id) {
+      return res.status(403).send("You do not have access to this meal.");
     }
 
     res.send(meal);
@@ -58,11 +70,19 @@ router.get("/:id/full", async (req, res, next) => {
  */
 router.get("/:id", async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).send("You must be logged in.");
+    }
+
     const id = Number(req.params.id);
     const meal = await getMealById(id);
 
     if (!meal) {
       return res.status(404).send("Meal not found.");
+    }
+
+    if (meal.user_id !== req.user.id) {
+      return res.status(403).send("You do not have access to this meal.");
     }
 
     res.send(meal);
@@ -83,10 +103,15 @@ router.get("/:id", async (req, res, next) => {
  */
 router.post(
   "/",
-  requireBody(["userId", "mealDate", "mealType"]),
+  requireBody(["mealDate", "mealType"]),
   async (req, res, next) => {
     try {
-      const { userId, mealDate, mealType } = req.body;
+      if (!req.user) {
+        return res.status(401).send("You must be logged in.");
+      }
+
+      const userId = req.user.id;
+      const { mealDate, mealType } = req.body;
 
       const meal = await createMeal(userId, mealDate, mealType);
 
@@ -112,14 +137,23 @@ router.put(
   requireBody(["mealDate", "mealType"]),
   async (req, res, next) => {
     try {
+      if (!req.user) {
+        return res.status(401).send("You must be logged in.");
+      }
+
       const id = Number(req.params.id);
-      const { mealDate, mealType } = req.body;
+      const existingMeal = await getMealById(id);
 
-      const meal = await updateMeal(id, mealDate, mealType);
-
-      if (!meal) {
+      if (!existingMeal) {
         return res.status(404).send("Meal not found.");
       }
+
+      if (existingMeal.user_id !== req.user.id) {
+        return res.status(403).send("You do not have access to this meal.");
+      }
+
+      const { mealDate, mealType } = req.body;
+      const meal = await updateMeal(id, mealDate, mealType);
 
       res.send(meal);
     } catch (error) {
@@ -138,14 +172,22 @@ router.put(
  */
 router.delete("/:id", async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).send("You must be logged in.");
+    }
+
     const id = Number(req.params.id);
+    const existingMeal = await getMealById(id);
 
-    const meal = await deleteMeal(id);
-
-    if (!meal) {
+    if (!existingMeal) {
       return res.status(404).send("Meal not found.");
     }
 
+    if (existingMeal.user_id !== req.user.id) {
+      return res.status(403).send("You do not have access to this meal.");
+    }
+
+    const meal = await deleteMeal(id);
     res.send(meal);
   } catch (error) {
     next(error);
