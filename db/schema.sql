@@ -62,6 +62,7 @@ CREATE TABLE meals (
     meal_type VARCHAR(50) NOT NULL CHECK (
         meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')
     ),
+    name VARCHAR(255),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -90,6 +91,9 @@ CREATE TABLE saved_meals (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
+    meal_type VARCHAR(50) NOT NULL CHECK (
+        meal_type IN ('breakfast', 'lunch', 'dinner', 'snack')
+    ),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -7,10 +7,35 @@ import db from "#db/client";
 export const getAllMeals = async (userId) => {
   const { rows } = await db.query(
     `
-    SELECT *
+    SELECT
+      meals.id,
+      meals.user_id,
+      meals.meal_date,
+      meals.meal_type,
+      meals.name,
+      COALESCE(
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'id', ingredients.id,
+            'name', ingredients.name,
+            'calories', ingredients.calories,
+            'protein', ingredients.protein,
+            'carbs', ingredients.carbs,
+            'fat', ingredients.fat,
+            'quantity', meal_ingredients.quantity
+          )
+          ORDER BY ingredients.name
+        ) FILTER (WHERE ingredients.id IS NOT NULL),
+        '[]'::json
+      ) AS ingredients
     FROM meals
+    LEFT JOIN meal_ingredients
+      ON meals.id = meal_ingredients.meal_id
+    LEFT JOIN ingredients
+      ON meal_ingredients.ingredient_id = ingredients.id
     WHERE user_id = $1
-    ORDER BY meal_date DESC;
+    GROUP BY meals.id
+    ORDER BY meals.meal_date DESC, meals.id DESC;
   `,
     [userId],
   );
@@ -51,8 +76,9 @@ export const getMealWithIngredients = async (id, userId) => {
       meals.user_id,
       meals.meal_date,
       meals.meal_type,
+      meals.name AS meal_name,
       ingredients.id AS ingredient_id,
-      ingredients.name,
+      ingredients.name AS ingredient_name,
       ingredients.calories,
       ingredients.protein,
       ingredients.carbs,
@@ -77,6 +103,7 @@ export const getMealWithIngredients = async (id, userId) => {
     user_id: rows[0].user_id,
     meal_date: rows[0].meal_date,
     meal_type: rows[0].meal_type,
+    name: rows[0].meal_name,
     ingredients: [],
   };
 
@@ -84,7 +111,7 @@ export const getMealWithIngredients = async (id, userId) => {
     if (row.ingredient_id) {
       meal.ingredients.push({
         id: row.ingredient_id,
-        name: row.name,
+        name: row.ingredient_name,
         calories: row.calories,
         protein: row.protein,
         carbs: row.carbs,
@@ -104,16 +131,16 @@ export const getMealWithIngredients = async (id, userId) => {
  * @param {string} mealType - The type of meal (breakfast, lunch, dinner, snack)
  * @returns {Promise<Object>} Created meal
  */
-export const createMeal = async (userId, mealDate, mealType) => {
+export const createMeal = async (userId, mealDate, mealType, name = null) => {
   const {
     rows: [meal],
   } = await db.query(
     `
-    INSERT INTO meals (user_id, meal_date, meal_type)
-    VALUES ($1, $2, $3)
+    INSERT INTO meals (user_id, meal_date, meal_type, name)
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
     `,
-    [userId, mealDate, mealType],
+    [userId, mealDate, mealType, name],
   );
 
   return meal;

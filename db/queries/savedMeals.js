@@ -15,6 +15,7 @@ export async function getAllSavedMeals(userId) {
       saved_meals.id,
       saved_meals.user_id,
       saved_meals.name,
+      saved_meals.meal_type,
       saved_meals.created_at,
       COALESCE(
         JSON_AGG(
@@ -55,6 +56,7 @@ export async function getSavedMealById(id, userId) {
       saved_meals.id,
       saved_meals.user_id,
       saved_meals.name,
+      saved_meals.meal_type,
       saved_meals.created_at,
       COALESCE(
         JSON_AGG(
@@ -85,7 +87,7 @@ export async function getSavedMealById(id, userId) {
   return savedMeal ?? null;
 }
 
-export async function createSavedMeal(userId, name, ingredients = []) {
+export async function createSavedMeal(userId, name, mealType, ingredients = []) {
   try {
     await db.query("BEGIN");
 
@@ -93,11 +95,11 @@ export async function createSavedMeal(userId, name, ingredients = []) {
       rows: [savedMeal],
     } = await db.query(
       `
-      INSERT INTO saved_meals (user_id, name)
-      VALUES ($1, $2)
+      INSERT INTO saved_meals (user_id, name, meal_type)
+      VALUES ($1, $2, $3)
       RETURNING *;
       `,
-      [userId, name],
+      [userId, name, mealType],
     );
 
     for (const ingredient of ingredients) {
@@ -112,6 +114,54 @@ export async function createSavedMeal(userId, name, ingredients = []) {
 
     await db.query("COMMIT");
     return getSavedMealById(savedMeal.id, userId);
+  } catch (error) {
+    await db.query("ROLLBACK");
+    throw error;
+  }
+}
+
+export async function updateSavedMeal(id, userId, name, mealType, ingredients = []) {
+  try {
+    await db.query("BEGIN");
+
+    const {
+      rows: [savedMeal],
+    } = await db.query(
+      `
+      UPDATE saved_meals
+      SET name = $3,
+          meal_type = $4
+      WHERE id = $1 AND user_id = $2
+      RETURNING *;
+      `,
+      [id, userId, name, mealType],
+    );
+
+    if (!savedMeal) {
+      await db.query("ROLLBACK");
+      return null;
+    }
+
+    await db.query(
+      `
+      DELETE FROM saved_meal_ingredients
+      WHERE saved_meal_id = $1;
+      `,
+      [id],
+    );
+
+    for (const ingredient of ingredients) {
+      await db.query(
+        `
+        INSERT INTO saved_meal_ingredients (saved_meal_id, ingredient_id, quantity)
+        VALUES ($1, $2, $3);
+        `,
+        [id, ingredient.ingredientId, ingredient.quantity],
+      );
+    }
+
+    await db.query("COMMIT");
+    return getSavedMealById(id, userId);
   } catch (error) {
     await db.query("ROLLBACK");
     throw error;
@@ -153,15 +203,17 @@ export async function useSavedMeal(savedMealId, userId, mealDate, mealType) {
       return null;
     }
 
+    const finalMealType = mealType ?? savedMeal.meal_type;
+
     const {
       rows: [meal],
     } = await db.query(
       `
-      INSERT INTO meals (user_id, meal_date, meal_type)
-      VALUES ($1, $2, $3)
+      INSERT INTO meals (user_id, meal_date, meal_type, name)
+      VALUES ($1, $2, $3, $4)
       RETURNING *;
       `,
-      [userId, mealDate, mealType],
+      [userId, mealDate, finalMealType, savedMeal.name],
     );
 
     const { rows: savedIngredients } = await db.query(
