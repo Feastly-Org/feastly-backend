@@ -4,12 +4,7 @@ export default app;
 
 import cors from "cors";
 
-import usersRouter from "#api/users";
-import dailyTotalsRouter from "#api/dailyTotals";
-import ingredientsRouter from "#api/ingredients";
-import mealIngredientsRouter from "#api/mealIngredients";
-import mealsRouter from "#api/meals";
-import savedMealsRouter from "#api/savedMeals";
+import apiRouter from "#api/index";
 import getUserFromToken from "#middleware/getUserFromToken";
 
 app.use(
@@ -30,18 +25,7 @@ app.use(express.json());
 
 app.use(getUserFromToken);
 
-app.use("/users", usersRouter);
-app.use("/api/users", usersRouter);
-app.use("/dailyTotals", dailyTotalsRouter);
-app.use("/api/dailyTotals", dailyTotalsRouter);
-app.use("/ingredients", ingredientsRouter);
-app.use("/api/ingredients", ingredientsRouter);
-app.use("/mealIngredients", mealIngredientsRouter);
-app.use("/api/mealIngredients", mealIngredientsRouter);
-app.use("/meals", mealsRouter);
-app.use("/api/meals", mealsRouter);
-app.use("/savedMeals", savedMealsRouter);
-app.use("/api/savedMeals", savedMealsRouter);
+app.use("/api", apiRouter);
 
 app.use((err, req, res, next) => {
   switch (err.code) {

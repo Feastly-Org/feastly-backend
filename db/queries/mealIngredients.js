@@ -1,25 +1,29 @@
 import db from "#db/client";
 
-// Function adds an ingredient to a specific meal
-export async function addMealIngredient(mealId, ingredientId, quantity) {
-  // Inserting a new row into the "meal_ingredients" table
-  const sql = `
-    INSERT INTO meal_ingredients
-      (meal_id, ingredient_id, quantity)
-    VALUES
-      ($1, $2, $3)
+/**
+ * Add an ingredient to a specific meal.
+ * @param {number} mealId - Meal ID
+ * @param {number} ingredientId - Ingredient ID
+ * @param {number} quantity - Quantity of the ingredient
+ * @returns {Promise<Object>} Created meal ingredient
+ */
+export const addMealIngredient = async (mealId, ingredientId, quantity) => {
+  const {
+    rows: [mealIngredient],
+  } = await db.query(
+    `
+    INSERT INTO meal_ingredients (meal_id, ingredient_id, quantity)
+    VALUES ($1, $2, $3)
+    ON CONFLICT (meal_id, ingredient_id)
+    DO UPDATE SET quantity = meal_ingredients.quantity + EXCLUDED.quantity
     RETURNING *;
-  `;
+    `,
+    [mealId, ingredientId, quantity],
+  );
 
-  // Send the query to the database
-  const result = await db.query(sql, [mealId, ingredientId, quantity]);
-
-  // Get the newly created row from the result
-  const mealIngredient = result.rows[0];
-
-  // Return the new meal ingredient
   return mealIngredient;
-}
+};
+
 /**
  * Get all meal ingredients from the database.
  * @returns {Promise<Array>} Array of meal_ingredient objects
@@ -48,28 +52,6 @@ export const getMealIngredientById = async (id) => {
     WHERE id = $1;
     `,
     [id],
-  );
-
-  return mealIngredient;
-};
-
-/**
- * Create a new meal ingredient.
- * @param {number} mealId - Meal ID
- * @param {number} ingredientId - Ingredient ID
- * @param {number} quantity - Quantity of the ingredient
- * @returns {Promise<Object>} Created meal ingredient
- */
-export const createMealIngredient = async (mealId, ingredientId, quantity) => {
-  const {
-    rows: [mealIngredient],
-  } = await db.query(
-    `
-    INSERT INTO meal_ingredients (meal_id, ingredient_id, quantity)
-    VALUES ($1, $2, $3)
-    RETURNING *;
-    `,
-    [mealId, ingredientId, quantity],
   );
 
   return mealIngredient;
@@ -125,13 +107,3 @@ export const deleteMealIngredient = async (id) => {
 
   return mealIngredient;
 };
-
-/**
- * Adds an ingredient to a specific meal.
- *
- * @param {number} mealId - The ID of the meal.
- * @param {number} ingredientId - The ID of the ingredient.
- * @param {number} quantity - The amount of the ingredient (e.g., grams, servings).
- *
- * @returns {Promise<Object>} The newly created meal_ingredient row.
- */

@@ -58,6 +58,10 @@ router.get("/:id/full", async (req, res, next) => {
       return res.status(404).send("Meal not found.");
     }
 
+    if (meal.user_id !== req.user.id) {
+      return res.status(403).send("You do not have access to this meal.");
+    }
+
     res.send(meal);
   } catch (error) {
     next(error);
@@ -81,6 +85,10 @@ router.get("/:id", async (req, res, next) => {
 
     if (!meal) {
       return res.status(404).send("Meal not found.");
+    }
+
+    if (meal.user_id !== req.user.id) {
+      return res.status(403).send("You do not have access to this meal.");
     }
 
     res.send(meal);
@@ -140,9 +148,16 @@ router.put(
 
       const meal = await updateMeal(id, user.id, mealDate, mealType);
 
-      if (!meal) {
+      if (!existingMeal) {
         return res.status(404).send("Meal not found.");
       }
+
+      if (existingMeal.user_id !== req.user.id) {
+        return res.status(403).send("You do not have access to this meal.");
+      }
+
+      const { mealDate, mealType } = req.body;
+      const meal = await updateMeal(id, mealDate, mealType);
 
       res.send(meal);
     } catch (error) {
@@ -168,10 +183,15 @@ router.delete("/:id", async (req, res, next) => {
 
     const meal = await deleteMeal(id, user.id);
 
-    if (!meal) {
+    if (!existingMeal) {
       return res.status(404).send("Meal not found.");
     }
 
+    if (existingMeal.user_id !== req.user.id) {
+      return res.status(403).send("You do not have access to this meal.");
+    }
+
+    const meal = await deleteMeal(id);
     res.send(meal);
   } catch (error) {
     next(error);
