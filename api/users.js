@@ -19,7 +19,7 @@ import { createToken } from "#utils/jwt";
  * @param {string} req.body.email - User email
  * @param {string} req.body.password - User password
  *
- * @returns {Object} 200 - { token: string }
+ * @returns {Object} 201 - { token: string }
  * @returns {Object} 400 - Missing required fields
  * @returns {Object} 409 - Email already exists
  */
@@ -34,7 +34,7 @@ router.post(
 
       const token = createToken({ id: user.id });
 
-      res.status(200).json({ token });
+      res.status(201).json({ token });
     } catch (err) {
       next(err);
     }
@@ -104,7 +104,7 @@ router.get("/:id", async (req, res, next) => {
     // Remove sensitive data
     delete user.password;
 
-    res.json(user);
+    res.status(200).json(user);
   } catch (err) {
     next(err);
   }
