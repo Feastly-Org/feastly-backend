@@ -18,12 +18,8 @@ export default router;
  * @returns {Array} List of all ingredients
  */
 router.get("/", async (req, res, next) => {
-  try {
-    const ingredients = await getAllIngredients();
-    res.send(ingredients);
-  } catch (error) {
-    next(error);
-  }
+  const ingredients = await getAllIngredients();
+  res.send(ingredients);
 });
 
 /**
@@ -34,18 +30,14 @@ router.get("/", async (req, res, next) => {
  * @returns {Object} Ingredient object
  */
 router.get("/:id", async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const ingredient = await getIngredientById(id);
+  const id = Number(req.params.id);
+  const ingredient = await getIngredientById(id);
 
-    if (!ingredient) {
-      return res.status(404).send("Ingredient not found.");
-    }
-
-    res.send(ingredient);
-  } catch (error) {
-    next(error);
+  if (!ingredient) {
+    return res.status(404).send("Ingredient not found.");
   }
+
+  res.send(ingredient);
 });
 
 /**
@@ -63,27 +55,23 @@ router.get("/:id", async (req, res, next) => {
 router.post(
   "/",
   requireBody(["name", "calories", "protein", "carbs", "fat"]),
-  async (req, res, next) => {
-    try {
-      const { name, calories, protein, carbs, fat } = req.body;
+  async (req, res) => {
+    const { name, calories, protein, carbs, fat } = req.body;
 
-      const ingredient = await createIngredient(
-        name,
-        calories,
-        protein,
-        carbs,
-        fat,
-      );
+    const ingredient = await createIngredient(
+      name,
+      calories,
+      protein,
+      carbs,
+      fat,
+    );
 
-      // If duplicate (ON CONFLICT DO NOTHING)
-      if (!ingredient) {
-        return res.status(409).send("Ingredient already exists.");
-      }
-
-      res.status(201).send(ingredient);
-    } catch (error) {
-      next(error);
+    // If duplicate (ON CONFLICT DO NOTHING)
+    if (!ingredient) {
+      return res.status(409).send("Ingredient already exists.");
     }
+
+    res.status(201).send(ingredient);
   },
 );
 
@@ -103,28 +91,24 @@ router.post(
 router.put(
   "/:id",
   requireBody(["name", "calories", "protein", "carbs", "fat"]),
-  async (req, res, next) => {
-    try {
-      const id = Number(req.params.id);
-      const { name, calories, protein, carbs, fat } = req.body;
+  async (req, res) => {
+    const id = Number(req.params.id);
+    const { name, calories, protein, carbs, fat } = req.body;
 
-      const ingredient = await updateIngredient(
-        id,
-        name,
-        calories,
-        protein,
-        carbs,
-        fat,
-      );
+    const ingredient = await updateIngredient(
+      id,
+      name,
+      calories,
+      protein,
+      carbs,
+      fat,
+    );
 
-      if (!ingredient) {
-        return res.status(404).send("Ingredient not found.");
-      }
-
-      res.send(ingredient);
-    } catch (error) {
-      next(error);
+    if (!ingredient) {
+      return res.status(404).send("Ingredient not found.");
     }
+
+    res.send(ingredient);
   },
 );
 
@@ -136,18 +120,14 @@ router.put(
  *
  * @returns {Object} Deleted ingredient
  */
-router.delete("/:id", async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
+router.delete("/:id", async (req, res) => {
+  const id = Number(req.params.id);
 
-    const ingredient = await deleteIngredient(id);
+  const ingredient = await deleteIngredient(id);
 
-    if (!ingredient) {
-      return res.status(404).send("Ingredient not found.");
-    }
-
-    res.send(ingredient);
-  } catch (error) {
-    next(error);
+  if (!ingredient) {
+    return res.status(404).send("Ingredient not found.");
   }
+
+  res.send(ingredient);
 });

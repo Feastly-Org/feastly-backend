@@ -16,53 +16,41 @@ export default router;
  * GET /api/daily-totals
  * Get all daily totals.
  */
-router.get("/", async (req, res, next) => {
-  try {
-    const dailyTotals = await getAllDailyTotals();
-    res.send(dailyTotals);
-  } catch (error) {
-    next(error);
-  }
+router.get("/", async (req, res) => {
+  const dailyTotals = await getAllDailyTotals();
+  res.send(dailyTotals);
 });
 
 /**
  * GET /api/daily-totals/user/:userId/date/:date
  * Get a daily total by user and date.
  */
-router.get("/user/:userId/date/:date", async (req, res, next) => {
-  try {
-    const userId = Number(req.params.userId);
-    const { date } = req.params;
+router.get("/user/:userId/date/:date", async (req, res) => {
+  const userId = Number(req.params.userId);
+  const { date } = req.params;
 
-    const dailyTotal = await getDailyTotalByUserAndDate(userId, date);
+  const dailyTotal = await getDailyTotalByUserAndDate(userId, date);
 
-    if (!dailyTotal) {
-      return res.status(404).send("Daily total not found.");
-    }
-
-    res.send(dailyTotal);
-  } catch (error) {
-    next(error);
+  if (!dailyTotal) {
+    return res.status(404).send("Daily total not found.");
   }
+
+  res.send(dailyTotal);
 });
 
 /**
  * GET /api/daily-totals/:id
  * Get a single daily total by ID.
  */
-router.get("/:id", async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const dailyTotal = await getDailyTotalById(id);
+router.get("/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const dailyTotal = await getDailyTotalById(id);
 
-    if (!dailyTotal) {
-      return res.status(404).send("Daily total not found.");
-    }
-
-    res.send(dailyTotal);
-  } catch (error) {
-    next(error);
+  if (!dailyTotal) {
+    return res.status(404).send("Daily total not found.");
   }
+
+  res.send(dailyTotal);
 });
 
 /**
@@ -79,30 +67,20 @@ router.post(
     "totalCarbs",
     "totalFat",
   ]),
-  async (req, res, next) => {
-    try {
-      const {
-        userId,
-        date,
-        totalCalories,
-        totalProtein,
-        totalCarbs,
-        totalFat,
-      } = req.body;
+  async (req, res) => {
+    const { userId, date, totalCalories, totalProtein, totalCarbs, totalFat } =
+      req.body;
 
-      const dailyTotal = await createDailyTotal(
-        userId,
-        date,
-        totalCalories,
-        totalProtein,
-        totalCarbs,
-        totalFat,
-      );
+    const dailyTotal = await createDailyTotal(
+      userId,
+      date,
+      totalCalories,
+      totalProtein,
+      totalCarbs,
+      totalFat,
+    );
 
-      res.status(201).send(dailyTotal);
-    } catch (error) {
-      next(error);
-    }
+    res.status(201).send(dailyTotal);
   },
 );
 
@@ -113,27 +91,23 @@ router.post(
 router.put(
   "/:id",
   requireBody(["totalCalories", "totalProtein", "totalCarbs", "totalFat"]),
-  async (req, res, next) => {
-    try {
-      const id = Number(req.params.id);
-      const { totalCalories, totalProtein, totalCarbs, totalFat } = req.body;
+  async (req, res) => {
+    const id = Number(req.params.id);
+    const { totalCalories, totalProtein, totalCarbs, totalFat } = req.body;
 
-      const dailyTotal = await updateDailyTotal(
-        id,
-        totalCalories,
-        totalProtein,
-        totalCarbs,
-        totalFat,
-      );
+    const dailyTotal = await updateDailyTotal(
+      id,
+      totalCalories,
+      totalProtein,
+      totalCarbs,
+      totalFat,
+    );
 
-      if (!dailyTotal) {
-        return res.status(404).send("Daily total not found.");
-      }
-
-      res.send(dailyTotal);
-    } catch (error) {
-      next(error);
+    if (!dailyTotal) {
+      return res.status(404).send("Daily total not found.");
     }
+
+    res.send(dailyTotal);
   },
 );
 
@@ -141,17 +115,13 @@ router.put(
  * DELETE /api/daily-totals/:id
  * Delete a daily total by ID.
  */
-router.delete("/:id", async (req, res, next) => {
-  try {
-    const id = Number(req.params.id);
-    const dailyTotal = await deleteDailyTotal(id);
+router.delete("/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const dailyTotal = await deleteDailyTotal(id);
 
-    if (!dailyTotal) {
-      return res.status(404).send("Daily total not found.");
-    }
-
-    res.send(dailyTotal);
-  } catch (error) {
-    next(error);
+  if (!dailyTotal) {
+    return res.status(404).send("Daily total not found.");
   }
+
+  res.send(dailyTotal);
 });
