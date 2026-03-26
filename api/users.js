@@ -10,7 +10,7 @@ import {
 
 import requireBody from "#middleware/requireBody";
 import { createToken } from "#utils/jwt";
-
+11;
 /**
  * @route POST /api/users/register
  * @description Register a new user and return a JWT token
