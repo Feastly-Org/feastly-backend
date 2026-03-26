@@ -12,15 +12,6 @@ import requireBody from "#middleware/requireBody";
 const router = express.Router();
 export default router;
 
-function requireUser(req, res) {
-  if (!req.user) {
-    res.status(401).send("You must be logged in.");
-    return null;
-  }
-
-  return req.user;
-}
-
 /**
  * GET /api/meals
  * Get all meals.
