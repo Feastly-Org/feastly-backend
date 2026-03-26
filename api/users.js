@@ -16,8 +16,8 @@ router.post(
 
       const token = createToken({ id: user.id });
       res.status(200).json({ token });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   },
 );
@@ -25,8 +25,10 @@ router.post(
 router.post("/login", requireBody(["email", "password"]), async (req, res) => {
   const { email, password } = req.body;
   const user = await getUserByEmailAndPassword(email, password);
-  if (!user)
+
+  if (!user) {
     return res.status(401).json({ message: "Invalid email or password." });
+  }
 
   const token = createToken({ id: user.id });
   res.status(200).json({ token });
