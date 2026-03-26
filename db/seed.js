@@ -1,12 +1,17 @@
 import db from "#db/client";
 import { faker } from "@faker-js/faker";
 
-import { INGREDIENT_LIST, DIETS, ALLERGIES } from "#db/data";
+import { INGREDIENT_LIST, DIETS, ALLERGIES, MEAL_TYPES } from "#db/data";
 
 import { createUser, getAllUsers } from "#db/queries/users";
 import { createIngredient, getAllIngredients } from "#db/queries/ingredients";
 import { createDiet, getAllDiets } from "#db/queries/diets";
 import { createAllergy, getAllAllergies } from "#db/queries/allergies";
+import { createMeal, getAllMeals } from "#db/queries/meals";
+import {
+  addMealIngredient,
+  getAllMealIngredients,
+} from "#db/queries/mealIngredients";
 
 await db.connect();
 await seed();
@@ -51,4 +56,42 @@ async function seed() {
   const allergies = await getAllAllergies();
   console.log("Allergies in database:");
   console.table(allergies);
+
+  // create meals for each user
+  for (let user of users) {
+    // create 5 meals
+    for (let i = 0; i < 5; i++) {
+      // chose meal type
+      const randomMealTypeIndex = Math.floor(Math.random() * MEAL_TYPES.length);
+      const meal = await createMeal(
+        user.id,
+        faker.date.recent(),
+        MEAL_TYPES[randomMealTypeIndex],
+        faker.food.dish(),
+      );
+    }
+  }
+
+  let meals = await getAllMeals();
+  console.log("Meals in database:");
+  console.table(meals);
+
+  // add 3 ingredients to each meal
+  for (const meal of meals) {
+    for (let i = 0; i < 3; i++) {
+      // select random ingredient
+      const randomIngredientId = Math.floor(
+        Math.random() * INGREDIENT_LIST.length + 1,
+      );
+      await addMealIngredient(meal.id, randomIngredientId, 1);
+    }
+  }
+
+  const mealIngredients = await getAllMealIngredients();
+  console.log("Meal Ingredients in database:");
+  console.table(mealIngredients);
+
+  // to confirm that meals and meal_ingredients show up in join query
+  meals = await getAllMeals();
+  console.table(meals);
 }
