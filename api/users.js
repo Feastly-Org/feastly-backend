@@ -68,12 +68,13 @@ router.post(
       const token = createToken({ id: user.id });
 
       res.status(200).json({ token });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   },
 );
 
+<<<<<<< api
 /**
  * @route GET /api/users/:id
  * @description Get a user by ID
@@ -103,6 +104,15 @@ router.get("/:id", async (req, res, next) => {
 
     // Remove sensitive data
     delete user.password;
+=======
+router.post("/login", requireBody(["email", "password"]), async (req, res) => {
+  const { email, password } = req.body;
+  const user = await getUserByEmailAndPassword(email, password);
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid email or password." });
+  }
+>>>>>>> main
 
     res.status(200).json(user);
   } catch (err) {
