@@ -101,8 +101,8 @@ router.get("/:id", async (req, res, next) => {
  * POST /api/meals
  * Create a new meal.
  *
-   * @param {string} mealDate - Date of the meal (YYYY-MM-DD)
-   * @param {string} mealType - Type of meal (breakfast, lunch, dinner, snack)
+ * @param {string} mealDate - Date of the meal (YYYY-MM-DD)
+ * @param {string} mealType - Type of meal (breakfast, lunch, dinner, snack)
  *
  * @returns {Object} Created meal
  */
@@ -148,17 +148,6 @@ router.put(
 
       const meal = await updateMeal(id, user.id, mealDate, mealType);
 
-      if (!existingMeal) {
-        return res.status(404).send("Meal not found.");
-      }
-
-      if (existingMeal.user_id !== req.user.id) {
-        return res.status(403).send("You do not have access to this meal.");
-      }
-
-      const { mealDate, mealType } = req.body;
-      const meal = await updateMeal(id, mealDate, mealType);
-
       res.send(meal);
     } catch (error) {
       next(error);
@@ -183,15 +172,6 @@ router.delete("/:id", async (req, res, next) => {
 
     const meal = await deleteMeal(id, user.id);
 
-    if (!existingMeal) {
-      return res.status(404).send("Meal not found.");
-    }
-
-    if (existingMeal.user_id !== req.user.id) {
-      return res.status(403).send("You do not have access to this meal.");
-    }
-
-    const meal = await deleteMeal(id);
     res.send(meal);
   } catch (error) {
     next(error);
