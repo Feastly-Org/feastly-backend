@@ -10,6 +10,10 @@ Users can track daily meals, monitor nutrition, and view trends over time.
 
 The goal is to make nutrition tracking simple, insightful, and personalized.
 
+[Feastly Frontend](https://github.com/Feastly-Org/Feastly-Frontend.git)
+
+[Live API](https://feastly-backend-j2xd.onrender.com)
+
 ---
 
 ## Core Features (MVP)
@@ -103,11 +107,15 @@ Below is the initial UI wireframe showing the layout of the application along wi
 
 ### Project Structure
 
+```bash
 feastly-backend/
-├── api/ # Route handlers (API endpoints)
-├── db/ # Database setup and queries
-├── middleware/ # Custom Express middleware
-├── utils/ # Utility/helper functions
+├── api/          # Route handlers (API endpoints)
+├── db/           # Database setup and queries
+├── middleware/   # Custom Express middleware
+├── utils/        # Utility/helper functions
+├── app.js        # Express app configuration
+└── server.js     # Server entry point
+```
 
 ---
 
