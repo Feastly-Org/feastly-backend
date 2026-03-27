@@ -26,18 +26,12 @@ import { createToken } from "#utils/jwt";
 router.post(
   "/register",
   requireBody(["email", "password"]),
-  async (req, res, next) => {
-    try {
-      const { email, password } = req.body;
+  async (req, res) => {
+    const { email, password } = req.body;
+    const user = await createUser(email, password);
 
-      const user = await createUser(email, password);
-
-      const token = createToken({ id: user.id });
-
-      res.status(201).json({ token });
-    } catch (err) {
-      next(err);
-    }
+    const token = createToken({ id: user.id });
+    res.status(201).json({ token });
   },
 );
 

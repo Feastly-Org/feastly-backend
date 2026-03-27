@@ -19,15 +19,11 @@ export default router;
  * @returns {Array} List of all meals
  */
 router.get("/", async (req, res, next) => {
-  try {
-    const user = requireUser(req, res);
-    if (!user) return;
+  const user = requireUser(req, res);
+  if (!user) return;
 
-    const meals = await getAllMeals(user.id);
-    res.send(meals);
-  } catch (error) {
-    next(error);
-  }
+  const meals = await getAllMeals(user.id);
+  res.send(meals);
 });
 
 /**
@@ -38,25 +34,18 @@ router.get("/", async (req, res, next) => {
  * @returns {Object} Meal with ingredients array
  */
 router.get("/:id/full", async (req, res, next) => {
-  try {
-    const user = requireUser(req, res);
-    if (!user) return;
+  const user = requireUser(req, res);
+  if (!user) return;
 
-    const id = Number(req.params.id);
-    const meal = await getMealWithIngredients(id, user.id);
+  const id = Number(req.params.id);
+  const meal = await getMealWithIngredients(id, user.id);
 
-    if (!meal) {
-      return res.status(404).send("Meal not found.");
-    }
+  if (!meal) return res.status(404).send("Meal not found.");
 
-    if (meal.user_id !== req.user.id) {
-      return res.status(403).send("You do not have access to this meal.");
-    }
+  if (meal.user_id !== req.user.id)
+    return res.status(403).send("You do not have access to this meal.");
 
-    res.send(meal);
-  } catch (error) {
-    next(error);
-  }
+  res.send(meal);
 });
 
 /**
@@ -67,25 +56,22 @@ router.get("/:id/full", async (req, res, next) => {
  * @returns {Object} Meal object
  */
 router.get("/:id", async (req, res, next) => {
-  try {
-    const user = requireUser(req, res);
-    if (!user) return;
-
-    const id = Number(req.params.id);
-    const meal = await getMealById(id, user.id);
-
-    if (!meal) {
-      return res.status(404).send("Meal not found.");
-    }
-
-    if (meal.user_id !== req.user.id) {
-      return res.status(403).send("You do not have access to this meal.");
-    }
-
-    res.send(meal);
-  } catch (error) {
-    next(error);
+  if (!req.user) {
+    return res.status(401).send("You must be logged in.");
   }
+
+  const id = Number(req.params.id);
+  const meal = await getMealById(id);
+
+  if (!meal) {
+    return res.status(404).send("Meal not found.");
+  }
+
+  if (meal.user_id !== req.user.id) {
+    return res.status(403).send("You do not have access to this meal.");
+  }
+
+  res.send(meal);
 });
 
 /**
@@ -97,24 +83,18 @@ router.get("/:id", async (req, res, next) => {
  *
  * @returns {Object} Created meal
  */
-router.post(
-  "/",
-  requireBody(["mealDate", "mealType"]),
-  async (req, res, next) => {
-    try {
-      const user = requireUser(req, res);
-      if (!user) return;
+router.post("/", requireBody(["mealDate", "mealType"]), async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send("You must be logged in.");
+  }
 
-      const { mealDate, mealType } = req.body;
+  const userId = req.user.id;
+  const { mealDate, mealType } = req.body;
 
-      const meal = await createMeal(user.id, mealDate, mealType);
+  const meal = await createMeal(userId, mealDate, mealType);
 
-      res.status(201).send(meal);
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+  res.status(201).send(meal);
+});
 
 /**
  * PUT /api/meals/:id
@@ -126,25 +106,27 @@ router.post(
  *
  * @returns {Object} Updated meal
  */
-router.put(
-  "/:id",
-  requireBody(["mealDate", "mealType"]),
-  async (req, res, next) => {
-    try {
-      const user = requireUser(req, res);
-      if (!user) return;
+router.put("/:id", requireBody(["mealDate", "mealType"]), async (req, res) => {
+  if (!req.user) {
+    return res.status(401).send("You must be logged in.");
+  }
 
-      const id = Number(req.params.id);
-      const { mealDate, mealType } = req.body;
+  const id = Number(req.params.id);
+  const existingMeal = await getMealById(id);
 
-      const meal = await updateMeal(id, user.id, mealDate, mealType);
+  if (!existingMeal) {
+    return res.status(404).send("Meal not found.");
+  }
 
-      res.send(meal);
-    } catch (error) {
-      next(error);
-    }
-  },
-);
+  if (existingMeal.user_id !== req.user.id) {
+    return res.status(403).send("You do not have access to this meal.");
+  }
+
+  const { mealDate, mealType } = req.body;
+  const meal = await updateMeal(id, mealDate, mealType);
+
+  res.send(meal);
+});
 
 /**
  * DELETE /api/meals/:id
@@ -155,16 +137,21 @@ router.put(
  * @returns {Object} Deleted meal
  */
 router.delete("/:id", async (req, res, next) => {
-  try {
-    const user = requireUser(req, res);
-    if (!user) return;
-
-    const id = Number(req.params.id);
-
-    const meal = await deleteMeal(id, user.id);
-
-    res.send(meal);
-  } catch (error) {
-    next(error);
+  if (!req.user) {
+    return res.status(401).send("You must be logged in.");
   }
+
+  const id = Number(req.params.id);
+  const existingMeal = await getMealById(id);
+
+  if (!existingMeal) {
+    return res.status(404).send("Meal not found.");
+  }
+
+  if (existingMeal.user_id !== req.user.id) {
+    return res.status(403).send("You do not have access to this meal.");
+  }
+
+  const meal = await deleteMeal(id);
+  res.send(meal);
 });
