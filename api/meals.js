@@ -123,16 +123,16 @@ router.put("/:id", requireBody(["mealDate", "mealType"]), async (req, res) => {
  */
 router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const existingMeal = await getMealById(id, req.user.id);
+  const userId = req.user.id;
+  const existingMeal = await getMealById(id, userId);
 
   if (!existingMeal) {
     return res.status(404).send("Meal not found.");
   }
 
-  if (existingMeal.user_id !== req.user.id) {
+  if (existingMeal.user_id !== userId) {
     return res.status(403).send("You do not have access to this meal.");
   }
-
-  const meal = await deleteMeal(id);
+  const meal = await deleteMeal(id, userId);
   res.send(meal);
 });
