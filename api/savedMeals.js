@@ -1,6 +1,7 @@
 import express from "express";
 
 import requireBody from "#middleware/requireBody";
+import requireUser from "#middleware/requireUser";
 import {
   createSavedMeal,
   deleteSavedMeal,
@@ -18,14 +19,6 @@ export default router;
  * This helper ensures every handler below has a resolved user
  * from the bearer token before touching saved meal data.
  */
-function requireUser(req, res) {
-  if (!req.user) {
-    res.status(401).send("You must be logged in.");
-    return null;
-  }
-
-  return req.user;
-}
 
 /**
  * GET /api/savedMeals
@@ -146,28 +139,24 @@ router.put(
  * into meal_ingredients for the selected day. If mealType is
  * omitted, the saved template's own meal type is used.
  */
-router.post(
-  "/:id/use",
-  requireBody(["mealDate"]),
-  async (req, res, next) => {
-    try {
-      const user = requireUser(req, res);
-      if (!user) return;
+router.post("/:id/use", requireBody(["mealDate"]), async (req, res, next) => {
+  try {
+    const user = requireUser(req, res);
+    if (!user) return;
 
-      const id = Number(req.params.id);
-      const { mealDate, mealType } = req.body;
+    const id = Number(req.params.id);
+    const { mealDate, mealType } = req.body;
 
-      const meal = await useSavedMeal(id, user.id, mealDate, mealType);
-      if (!meal) {
-        return res.status(404).send("Saved meal not found.");
-      }
-
-      res.status(201).send(meal);
-    } catch (error) {
-      next(error);
+    const meal = await useSavedMeal(id, user.id, mealDate, mealType);
+    if (!meal) {
+      return res.status(404).send("Saved meal not found.");
     }
-  },
-);
+
+    res.status(201).send(meal);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * DELETE /api/savedMeals/:id
