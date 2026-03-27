@@ -8,6 +8,7 @@ import {
   deleteMeal,
 } from "#db/queries/meals";
 import requireBody from "#middleware/requireBody";
+import requireUser from "#middleware/requireUser";
 
 const router = express.Router();
 export default router;
@@ -18,11 +19,10 @@ export default router;
  *
  * @returns {Array} List of all meals
  */
-router.get("/", async (req, res, next) => {
-  const user = requireUser(req, res);
-  if (!user) return;
+router.use(requireUser);
 
-  const meals = await getAllMeals(user.id);
+router.get("/", async (req, res) => {
+  const meals = await getAllMeals(req.user.id);
   res.send(meals);
 });
 
@@ -33,12 +33,9 @@ router.get("/", async (req, res, next) => {
  * @param {number} id - Meal ID
  * @returns {Object} Meal with ingredients array
  */
-router.get("/:id/full", async (req, res, next) => {
-  const user = requireUser(req, res);
-  if (!user) return;
-
+router.get("/:id/full", async (req, res) => {
   const id = Number(req.params.id);
-  const meal = await getMealWithIngredients(id, user.id);
+  const meal = await getMealWithIngredients(id, req.user.id);
 
   if (!meal) return res.status(404).send("Meal not found.");
 
@@ -55,11 +52,7 @@ router.get("/:id/full", async (req, res, next) => {
  * @param {number} id - Meal ID from URL params
  * @returns {Object} Meal object
  */
-router.get("/:id", async (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).send("You must be logged in.");
-  }
-
+router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
   const meal = await getMealById(id);
 
@@ -84,10 +77,6 @@ router.get("/:id", async (req, res, next) => {
  * @returns {Object} Created meal
  */
 router.post("/", requireBody(["mealDate", "mealType"]), async (req, res) => {
-  if (!req.user) {
-    return res.status(401).send("You must be logged in.");
-  }
-
   const userId = req.user.id;
   const { mealDate, mealType } = req.body;
 
@@ -107,10 +96,6 @@ router.post("/", requireBody(["mealDate", "mealType"]), async (req, res) => {
  * @returns {Object} Updated meal
  */
 router.put("/:id", requireBody(["mealDate", "mealType"]), async (req, res) => {
-  if (!req.user) {
-    return res.status(401).send("You must be logged in.");
-  }
-
   const id = Number(req.params.id);
   const existingMeal = await getMealById(id);
 
@@ -136,22 +121,18 @@ router.put("/:id", requireBody(["mealDate", "mealType"]), async (req, res) => {
  *
  * @returns {Object} Deleted meal
  */
-router.delete("/:id", async (req, res, next) => {
-  if (!req.user) {
-    return res.status(401).send("You must be logged in.");
-  }
-
+router.delete("/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const existingMeal = await getMealById(id);
+  const userId = req.user.id;
+  const existingMeal = await getMealById(id, userId);
 
   if (!existingMeal) {
     return res.status(404).send("Meal not found.");
   }
 
-  if (existingMeal.user_id !== req.user.id) {
+  if (existingMeal.user_id !== userId) {
     return res.status(403).send("You do not have access to this meal.");
   }
-
-  const meal = await deleteMeal(id);
+  const meal = await deleteMeal(id, userId);
   res.send(meal);
 });
