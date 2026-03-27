@@ -4,7 +4,48 @@ import db from "#db/client";
  * Get all meals from the database.
  * @returns {Promise<Array>} Array of meal objects
  */
-export const getAllMeals = async (userId) => {
+export const getAllMeals = async () => {
+  const { rows } = await db.query(
+    `
+    SELECT
+      meals.id,
+      meals.user_id,
+      meals.meal_date,
+      meals.meal_type,
+      meals.name,
+      COALESCE(
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'id', ingredients.id,
+            'name', ingredients.name,
+            'calories', ingredients.calories,
+            'protein', ingredients.protein,
+            'carbs', ingredients.carbs,
+            'fat', ingredients.fat,
+            'quantity', meal_ingredients.quantity
+          )
+          ORDER BY ingredients.name
+        ) FILTER (WHERE ingredients.id IS NOT NULL),
+        '[]'::json
+      ) AS ingredients
+    FROM meals
+    LEFT JOIN meal_ingredients
+      ON meals.id = meal_ingredients.meal_id
+    LEFT JOIN ingredients
+      ON meal_ingredients.ingredient_id = ingredients.id
+    GROUP BY meals.id
+    ORDER BY meals.meal_date DESC, meals.id DESC;
+  `,
+  );
+
+  return rows;
+};
+
+/**
+ * Get all meals for a given user from the database.
+ * @returns {Promise<Array>} Array of meal objects
+ */
+export const getAllMealsForUser = async (userId) => {
   const { rows } = await db.query(
     `
     SELECT

@@ -179,3 +179,5 @@ export const ALLERGIES = [
   { name: "garlic" },
   { name: "onion" },
 ];
+
+export const MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"];
