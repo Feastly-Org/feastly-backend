@@ -7,7 +7,7 @@ import cors from "cors";
 import apiRouter from "#api/index";
 import getUserFromToken from "#middleware/getUserFromToken";
 
-app.use(cors({ origin: /localhost/ }));
+app.use(cors());
 app.use(express.json());
 
 app.use(getUserFromToken);
